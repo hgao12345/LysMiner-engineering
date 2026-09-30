@@ -1,20 +1,16 @@
 # AMP-like Region Prediction
 
-This module is used to identify AMP-like regions within full-length protein sequences using a sliding-window-based prediction strategy.
+This module identifies AMP-like regions within full-length protein sequences using a sliding-window-based prediction strategy.
 
-The workflow first divides each protein sequence into 13-amino-acid overlapping windows with a step size of 1. Each window is then classified using a trained AMP prediction model. Windows predicted as AMP-positive (`label = 1`) are merged according to their positions in the original protein sequence to identify continuous AMP-like regions and calculate their proportion within each protein.
+Each protein sequence is divided into overlapping 13-amino-acid windows with a step size of 1. Each window is then classified using the pretrained AMP classification model **ABP-MPB**. Windows predicted as AMP-positive (`pred_label = 1`) are mapped back to their original positions in the protein sequence and merged to identify continuous AMP-like regions. The proportion of residues covered by AMP-like regions is subsequently calculated for each protein.
 
 ## Input Data
 
-First, prepare the protein sequences in CSV format:
-
-> input.csv
-
-The input CSV file should contain the following columns:
+Protein sequences should be provided in CSV format with two columns:
 
 | id | seq |
-| :--: | :--: |
-| protein id | protein sequence |
+| :-- | :-- |
+| Protein identifier | Protein sequence |
 
 For example:
 
@@ -24,136 +20,108 @@ protein_1,MKTIIALSYIFCLVFADYKDDDDK
 protein_2,MKWVTFISLLLLFSSAYSRGVFRR
 ```
 
-## AMP-like Region Prediction
+Protein identifiers should be unique. Input protein sequences should be at least 13 amino acids long.
 
-Run the prediction pipeline using:
+An example input file is provided at:
+
+```text
+example/example_seq.csv
+```
+
+## Pretrained AMP Model
+
+The pretrained **ABP-MPB** model used for AMP-like region prediction can be downloaded from Zenodo:
+
+https://zenodo.org/records/16545412
+
+Download `ABP_Model.ckpt` and save it to a local directory. The checkpoint path can then be specified using the `--checkpoint` argument.
+
+## Usage
+
+To run the pipeline with the example dataset:
 
 ```bash
-python AMP_region_prediction.py
+python AMP_region_prediction.py \
+    --checkpoint /path/to/ABP_Model.ckpt
 ```
 
-The main parameters can be specified at the beginning of the script:
-
-```python
-WORK_DIR = Path("<working_directory>")
-INPUT_FILE = WORK_DIR / "<input_file>.csv"
-
-WINDOW_SIZE = 13
-STEP_SIZE = 1
-
-DEVICE_ID = <device_id>
-POSITIVE_LABEL = 1
-```
-
-### Pretrained AMP Model
-
-The pretrained AMP classification model (ABP-MPB) used for AMP-like region prediction can be downloaded from [Zenodo](https://zenodo.org/records/16545412/files/ABP_Model.ckpt?download=1).
-
-After downloading the model, specify the path to `ABP_Model.ckpt` in the script:
-
-```python
-CHECKPOINT = Path("<path_to>/ABP_Model.ckpt")
-```
-
-The paths to the MP-BERT model script, configuration file, and vocabulary file should also be specified:
-
-```python
-MODEL_SCRIPT = Path("<path_to>/mpbert_classification.py")
-CONFIG_PATH = Path("<path_to>/config_1024.yaml")
-VOCAB_FILE = Path("<path_to>/vocab_v2.txt")
-```
-
-## Workflow
-
-The pipeline consists of three steps.
-
-### 1. Generate Sliding Windows
-
-Each full-length protein sequence is divided into 13-aa overlapping windows using a step size of 1.
-
-For a protein sequence of length *L*, a total of:
+By default, the pipeline reads:
 
 ```text
-L - 13 + 1
+example/example_seq.csv
 ```
 
-windows are generated.
+and writes the results to the `example/` directory.
 
-The resulting file is organized as:
+For a custom protein dataset:
 
-| id | seq |
-| :--: | :--: |
-| protein_1_1 | 13-aa sequence |
-| protein_1_2 | 13-aa sequence |
-| ... | ... |
-
-The number at the end of each ID indicates the starting position of the window in the original protein sequence.
-
-### 2. Predict AMP-like Windows
-
-Each 13-aa window is classified using the pretrained ABP-MPB model.
-
-In this pipeline:
-
-```text
-pred_label = 1
+```bash
+python AMP_region_prediction.py \
+    --input /path/to/input.csv \
+    --checkpoint /path/to/ABP_Model.ckpt \
+    --output_dir /path/to/output \
+    --device 0
 ```
 
-is defined as an AMP-positive window.
+### Main Arguments
 
-Only a single trained model is used for prediction; no 10-fold ensemble is required.
+| Argument | Description | Default |
+| :-- | :-- | :-- |
+| `--input` | Input CSV file containing protein IDs and sequences | `example/example_seq.csv` |
+| `--checkpoint` | Path to the pretrained `ABP_Model.ckpt` | Required |
+| `--output_dir` | Directory for output files | `example/` |
+| `--device` | GPU/device ID used for prediction | `0` |
+| `--seq_name` | Prefix used for sliding-window output files | `LYS` |
 
-### 3. Identify AMP-like Regions
-
-AMP-positive windows are mapped back to their original positions in the full-length protein.
-
-Overlapping positive windows are merged into continuous AMP-like regions.
-
-The AMP-like region proportion is calculated as:
-
-```text
-AMP-like region proportion =
-number of residues covered by AMP-positive windows / full protein length
-```
+The sliding-window size and step size are fixed at 13 and 1, respectively, consistent with the model construction and AMP-like region prediction strategy used in this study.
 
 ## Output
 
-The final output file is:
+The pipeline generates the following files:
+
+```text
+output_directory/
+├── LYS_sliding_window_sequences13AA.csv
+├── protein_AMP_region_ratio.csv
+└── AMP_prediction/
+    ├── LYS_sliding_window_sequences13AA_predict_result.csv
+    └── logs/
+        ├── log.log
+        └── sys.log
+```
+
+The main output file is:
 
 ```text
 protein_AMP_region_ratio.csv
 ```
 
-The final output, `protein_AMP_region_ratio.csv`, contains the following columns:
+It contains the following information:
 
 | Column | Description |
 | :-- | :-- |
-| `protein_name` | Protein ID from the input file |
-| `protein_length` | Protein sequence length |
-| `total_windows` | Number of sliding windows evaluated |
+| `protein_name` | Protein identifier |
+| `protein_length` | Length of the protein sequence |
+| `total_windows` | Total number of 13-aa windows generated |
 | `positive_windows` | Number of windows predicted as AMP-positive |
-| `AMP_length` | Number of unique residues covered by positive windows |
-| `AMP_ratio` | `AMP_length / protein_length`, ranging from 0 to 1 |
-| `AMP_percent` | `AMP_ratio × 100`, expressed as a percentage |
-| `AMP_regions` | Merged AMP-like regions using 1-based, inclusive coordinates, separated by semicolons |
+| `AMP_length` | Number of residues covered by AMP-like regions |
+| `AMP_ratio` | Proportion of the protein sequence covered by AMP-like regions |
+| `AMP_percent` | AMP-like region coverage expressed as a percentage |
+| `AMP_regions` | Positions of continuous AMP-like regions in the protein sequence |
 
 For example:
 
 ```text
 protein_name,protein_length,total_windows,positive_windows,AMP_length,AMP_ratio,AMP_percent,AMP_regions
-protein_1,150,138,20,35,0.2333,23.33,18-45;109-115
+protein_1,150,138,25,42,0.28,28.0,15-36;82-101
 ```
 
-## Requirements
+Here, `AMP_regions = 15-36;82-101` indicates two predicted AMP-like regions spanning residues 15–36 and 82–101.
 
-The pipeline requires:
+## Workflow
 
-```text
-Python
-pandas
-NumPy
-MP-BERT
-MindSpore
-```
+The complete pipeline consists of three steps:
 
-The MP-BERT configuration file, vocabulary file, and pretrained ABP-MPB checkpoint are required for prediction.
+1. **Sliding-window generation** – full-length protein sequences are divided into 13-aa windows with a step size of 1.
+2. **AMP prediction** – each window is classified using the pretrained ABP-MPB model, with `pred_label = 1` considered AMP-positive.
+3. **AMP-like region calculation** – overlapping AMP-positive windows are merged and mapped back to the full-length protein to calculate AMP-like region coverage.
