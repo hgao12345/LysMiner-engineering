@@ -34,7 +34,7 @@ LysMiner/
     └── example_seq.csv
 ```
 
-`LysMiner_Best_Model.ckpt` is required but is not included in the supplied directory. Provide the trained LysMiner classification checkpoint separately, or set `--load_checkpoint_url` to its actual path.
+`Download the trained LysMiner checkpoint (`LysMiner_Best_Model.ckpt`) from [Zenodo](ZENODO_URL_HERE) and place it in the project directory. Alternatively, set `--load_checkpoint_url` to the actual path of the downloaded checkpoint.
 
 Then, run the following command from the project directory:
 
