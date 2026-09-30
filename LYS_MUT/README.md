@@ -54,4 +54,3 @@ python step_5_get_result.py example_seq
 Pass the input filename without its extension. Results are saved in `example/example_seq/train_data/prediction/` as `example_seq.csv` and `example_seq.json`. The CSV includes `id`, `seq`, `mask_logits_mean`, `mask_logits_min`, and `label`; `label` marks the wild type (`0`) or generated candidates (`-1`), not lysozyme activity.
 
 Use the candidate `id` and `seq` columns for subsequent LysMiner screening and AMP-like region prediction.
-```
