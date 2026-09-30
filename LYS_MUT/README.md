@@ -22,7 +22,7 @@ The default hardware backend used in this study is Ascend.
 
 A local copy of the UniRef90 protein sequence database is required for homologous sequence retrieval.
 
-The training pipeline also requires a complete MP-BERT masked-model implementation containing:
+The training and prediction pipeline also requires a complete MP-BERT masked-model implementation containing:
 
 ```text
 MP-BERT-v3/
@@ -94,7 +94,6 @@ example/
 ├── example_seq.hmmer.tblout
 ├── example_seq.hmmer.domtblout
 ├── example_seq.hmmer.fasta
-│
 └── example_seq/
     └── train_data/
         ├── train.fasta
@@ -178,28 +177,53 @@ is saved in the training directory.
 
 ## 4. Generate Lysozyme Variants
 
-After training is complete, generate candidate variants from the wild-type lysozyme using:
+After training is complete, use `step_4_run_predict.py` to generate candidate variants from the wild-type lysozyme.
+
+For example:
 
 ```bash
 python step_4_run_predict.py \
-    ./example/example_seq.fasta \
-    0
+    --input ./example/example_seq.fasta \
+    --model_dir ./example/example_seq/train_data \
+    --mpbert_dir /path/to/MP-BERT-v3 \
+    --vocab_file /path/to/vocab_v2.txt \
+    --device 0
 ```
 
-Replace `0` with the appropriate Ascend device ID.
+Replace the example paths with the corresponding paths on your system.
 
-Before running the prediction script, ensure that `model_dir` in `step_4_run_predict.py` points to the training directory containing the target-specific `mask_Best_Model.ckpt`.
+The main arguments are:
 
-By default, the generation procedure performs 100,000 sequence-generation attempts with a masking proportion of 0.1.
+| Argument | Description | Default |
+| :-- | :-- | :-- |
+| `--input` | Input FASTA containing the wild-type lysozyme | Required |
+| `--model_dir` | Directory containing the trained `mask_Best_Model.ckpt` | Required |
+| `--mpbert_dir` | MP-BERT directory containing `mpbert_mask.py` and `config_1024.yaml` | Required |
+| `--vocab_file` | Path to `vocab_v2.txt` | Required |
+| `--device` | Ascend device ID used for prediction | `0` |
+| `--predict_mask_num` | Number of sequence-generation attempts | `100000` |
+| `--mask_prob` | Proportion of residues masked during each generation attempt | `0.1` |
 
-These settings can be adjusted in `step_4_run_predict.py` through:
+With the default settings, LYS-MUT performs 100,000 sequence-generation attempts with a masking proportion of 0.1.
+
+The generation parameters can be changed directly from the command line. For example:
+
+```bash
+python step_4_run_predict.py \
+    --input ./example/example_seq.fasta \
+    --model_dir ./example/example_seq/train_data \
+    --mpbert_dir /path/to/MP-BERT-v3 \
+    --vocab_file /path/to/vocab_v2.txt \
+    --device 0 \
+    --predict_mask_num 100000 \
+    --mask_prob 0.15
+```
+
+The generated sequences and associated model outputs are saved under:
 
 ```text
---predict_mask_num
---mask_prob
+example/example_seq/train_data/prediction/
 ```
-
-The generated sequences and associated model outputs are written to the `prediction/` directory under the corresponding training directory.
 
 ## 5. Export Generated Variants
 
