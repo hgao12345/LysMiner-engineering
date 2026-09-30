@@ -1,27 +1,59 @@
-# Classification Task
+# LYS-MUT Training and Prediction
 
-First, you need to organize the training data into the following format:
+LYS-MUT trains a target-specific model using homologous sequences and generates candidate variants from a wild-type lysozyme. The checkpoint `mask_Best_Model.ckpt` is generated during training.
 
-> root_data_path <br>
-&emsp;&emsp;|---train.csv <br>
-&emsp;&emsp;|---val.csv (Optional) <br>
-&emsp;&emsp;|---test.csv (Optional) <br>
+Prepare an environment with MindSpore 1.8.0, HMMER 3.1b2 (`jackhmmer`), and the Python packages `numpy`, `pandas`, `scikit-learn`, `pyyaml`, `six`, and `tqdm`. The default hardware backend is Ascend.
 
-Each csv file needs to contain the following columns：
+First, save one wild-type protein sequence in `example/example_seq.fasta`. Use uppercase amino acid letters without spaces or gaps. With the default configuration, the sequence must contain 10–1022 residues.
 
-| id | seq | label |
-| :--: 	| :--: | :--:	 |
-| protein id | protein sequence | int label |
+Then, search your local UniRef90 database and prepare the training data:
 
-
-After that, you need to organize the data into Record format：
-```
-python generate_seq_for_classification.py --data_dir <csv_data> --vocab_file vocab_v2.txt --output_dir <mr_data> --max_seq_length 1024 --do_train True --do_eval True --do_test True
+```bash
+cd /absolute/path/to/LYS_MUT
+python step_1_run_sequence_align.py \
+    -F "$PWD/example/example_seq.fasta" \
+    -U /absolute/path/to/uniref90.fasta \
+    -O "$PWD/example" \
+    -T 1.0 -A 1
 ```
 
-Then, use the following scirpt to train and evaluate model:
+Replace `-U` with your database path. This creates `train.fasta`, `val.fasta`, and `test.fasta` under `example/example_seq/train_data/`. The script requests 50 CPU threads; adjust its `--cpu` setting if needed.
+
+Before training, update the server-specific paths in these scripts:
+
+| Script | Setting |
+| :-- | :-- |
+| `step_3_run_train.py` | Set `data_path` to the absolute path of `example/example_seq/train_data/` |
+| `step_4_run_predict.py` | Set `model_dir` to the same training directory |
+| `step_5_get_result.py` | Set `PREDICTION_DIR` to that directory's `prediction/` subfolder |
+
+The wrappers also require paths to a complete MP-BERT masked-model implementation, its matching configuration, `vocab_v2.txt`, `generate_seq_for_mask.py`, and a pretrained initialization checkpoint. The current copy lacks some of these components; provide them or point the wrappers to a complete installation. The initialization checkpoint is separate from the target-specific checkpoint produced below.
+
+Next, convert the datasets to MindRecord format and train the model:
+
+```bash
+python step_3_run_train.py 0
 ```
-python mpbert_classification.py --config_path config_1024.yaml --do_train True --do_eval True --description classification --num_class 2 --epoch_num 200 --early_stopping_rounds 50 --frozen_bert False --device_id <id> --data_url <mr_data> --load_checkpoint_url MP-BERT_pretrained_model_1024.ckpt --output_url <saved_models> --task_name test --train_batch_size 32 1> log.log 2> sys.log
+
+Replace `0` with your Ascend device ID. Training runs in the background and saves `mask_Best_Model.ckpt` in the training directory. Check `train_log.log` and `train_sys.log`, and wait for training and evaluation to finish.
+
+Then, generate variants using the trained model:
+
+```bash
+python step_4_run_predict.py "$PWD/example/example_seq.fasta" 0
+```
+
+The default settings are 100,000 generation attempts and a masking proportion of 0.1. Change `--predict_mask_num` and `--mask_prob` inside the script if needed.
+
+Finally, export the results:
+
+```bash
+python step_5_get_result.py example_seq
+```
+
+Pass the input filename without its extension. Results are saved in `example/example_seq/train_data/prediction/` as `example_seq.csv` and `example_seq.json`. The CSV includes `id`, `seq`, `mask_logits_mean`, `mask_logits_min`, and `label`; `label` marks the wild type (`0`) or generated candidates (`-1`), not lysozyme activity.
+
+Use the candidate `id` and `seq` columns for subsequent LysMiner screening and AMP-like region prediction.
 ```
 
 
