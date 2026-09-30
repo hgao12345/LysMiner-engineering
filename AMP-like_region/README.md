@@ -45,13 +45,17 @@ DEVICE_ID = <device_id>
 POSITIVE_LABEL = 1
 ```
 
-The trained AMP classification model should also be specified:
+### Pretrained AMP Model
+
+The pretrained AMP classification model (ABP-MPB) used for AMP-like region prediction can be downloaded from [Zenodo](https://zenodo.org/records/16545412/files/ABP_Model.ckpt?download=1).
+
+After downloading the model, specify the path to `ABP_Model.ckpt` in the script:
 
 ```python
-CHECKPOINT = Path("<AMP_model_checkpoint>")
+CHECKPOINT = Path("<path_to>/ABP_Model.ckpt")
 ```
 
-The MP-BERT-related files should be specified as:
+The paths to the MP-BERT model script, configuration file, and vocabulary file should also be specified:
 
 ```python
 MODEL_SCRIPT = Path("<path_to>/mpbert_classification.py")
@@ -87,7 +91,7 @@ The number at the end of each ID indicates the starting position of the window i
 
 ### 2. Predict AMP-like Windows
 
-Each 13-aa window is classified using the trained AMP prediction model.
+Each 13-aa window is classified using the pretrained ABP-MPB model.
 
 In this pipeline:
 
@@ -154,4 +158,4 @@ MP-BERT
 MindSpore
 ```
 
-The corresponding MP-BERT configuration, vocabulary file, and trained AMP classification checkpoint are required for prediction.
+The MP-BERT configuration file, vocabulary file, and pretrained ABP-MPB checkpoint are required for prediction.
