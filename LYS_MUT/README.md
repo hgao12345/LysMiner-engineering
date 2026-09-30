@@ -55,5 +55,3 @@ Pass the input filename without its extension. Results are saved in `example/exa
 
 Use the candidate `id` and `seq` columns for subsequent LysMiner screening and AMP-like region prediction.
 ```
-
-
