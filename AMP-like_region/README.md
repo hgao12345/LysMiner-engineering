@@ -113,9 +113,7 @@ The AMP-like region proportion is calculated as:
 
 ```text
 AMP-like region proportion =
-number of residues covered by AMP-positive windows
-/
-full protein length
+number of residues covered by AMP-positive windows / full protein length
 ```
 
 ## Output
