@@ -1,6 +1,6 @@
-# AMP-like Region Prediction
+# LysMiner Prediction
 
-This module predicts intrinsic AMP-like regions in protein sequences and calculates the proportion of residues covered by these regions. Each protein is scanned using a 13-amino-acid sliding window with a step size of one residue. A single trained AMP prediction model classifies each window, and overlapping or adjacent positive windows are merged into continuous AMP-like regions.
+LysMiner identifies candidate lysozymes from protein sequences using a trained binary classification model. For each input sequence, it returns a predicted class and a score for the lysozyme-positive class.
 
 First, prepare a Python environment with MindSpore and the following packages:
 
@@ -8,47 +8,93 @@ First, prepare a Python environment with MindSpore and the following packages:
 python -m pip install numpy "pandas<2" scikit-learn pyyaml six tqdm
 ```
 
-The study used MindSpore 1.8.0. Install the corresponding MindSpore package and hardware dependencies for your platform; see the [MindSpore 1.8 installation documentation](https://www.mindspore.cn/docs/zh-CN/r1.8/faq/installation.html). The supplied `config_1024.yaml` uses `device_target: "Ascend"` by default. Ensure that this setting matches your installed MindSpore backend and available hardware. The current classification script uses a legacy pandas API, so pandas 1.x is required unless that call is updated.
+The study used MindSpore 1.8.0. Install the corresponding MindSpore package and hardware dependencies for your platform; see the [MindSpore 1.8 installation documentation](https://www.mindspore.cn/docs/zh-CN/r1.8/faq/installation.html). The supplied configuration uses `device_target: "Ascend"` by default. Ensure that this setting matches your installed MindSpore backend and available hardware. The current classification script uses a legacy pandas API, so pandas 1.x is required unless that call is updated.
 
 Then, organize the input data into the following format:
 
 ```text
-AMP-like_region/
+LysMiner/
 └── example/
     └── example_seq.csv
 ```
 
-The CSV file must contain a header and the following columns in this order:
+The CSV file must contain a header and the following columns:
 
 | id | seq |
 | :--: | :--: |
-| Unique protein ID | Full-length amino acid sequence |
+| Unique protein ID | Protein amino acid sequence |
 
-Use uppercase amino acid sequences without spaces or gaps. Each sequence must contain at least 13 residues. A `label` column is not required for prediction, and the input CSV does not need to be converted to MindRecord format.
+Use uppercase amino acid sequences without spaces or gaps. A `label` column is not required for prediction, and the input CSV does not need to be converted to MindRecord format. With the supplied configuration, sequences longer than 1021 residues are truncated to their first 1021 residues before prediction.
 
-After that, update the corresponding parameters in `AMP-like_region_prediction.py`:
+After that, place the trained LysMiner checkpoint in the project directory:
 
-```python
-PROJECT_DIR = Path("/absolute/path/to/AMP-like_region")
-WORK_DIR = PROJECT_DIR / "example"
-INPUT_FILE = WORK_DIR / "example_seq.csv"
-
-CHECKPOINT = Path("/absolute/path/to/test_Best_Model.ckpt")
-DEVICE_ID = 0
+```text
+LysMiner/
+├── LysMiner_Best_Model.ckpt
+├── LysMiner_prediction.sh
+├── mpbert_classification.py
+├── config_1024.yaml
+├── vocab_v2.txt
+├── src/
+└── example/
+    └── example_seq.csv
 ```
 
-`PROJECT_DIR` must contain `mpbert_classification.py`, `config_1024.yaml`, `vocab_v2.txt`, and the `src/` directory. `CHECKPOINT` must point to a trained AMP classification checkpoint compatible with this model configuration. The checkpoint is not included in this directory and must be provided separately.
+`LysMiner_Best_Model.ckpt` is required but is not included in the supplied directory. Provide the trained LysMiner classification checkpoint separately, or set `--load_checkpoint_url` to its actual path.
 
-Keep the following settings to reproduce the supplied scanning procedure:
+Then, run the following command from the project directory:
 
-```python
-SEQ_NAME = "LYS"
-WINDOW_SIZE = 13
-STEP_SIZE = 1
-POSITIVE_LABEL = 1
+```bash
+cd /absolute/path/to/LysMiner
+python mpbert_classification.py \
+    --config_path "$PWD/config_1024.yaml" \
+    --load_checkpoint_url ./LysMiner_Best_Model.ckpt \
+    --do_predict True \
+    --description classification \
+    --num_class 2 \
+    --device_id 0 \
+    --vocab_file ./vocab_v2.txt \
+    --data_url ./example/example_seq.csv \
+    --output_url ./example/ \
+    --return_sequence False \
+    --return_csv True \
+    1> log.log 2> sys.log
 ```
 
-`SEQ_NAME` controls the intermediate output filenames. `DEVICE_ID` selects the Ascend device when using the default backend. Keep `STEP_SIZE = 1`, because the current coverage calculation infers the protein length from the final sliding window.
+Replace `--device_id 0` with the ID of your available Ascend device. Change `--data_url` and `--output_url` to use a different input file or output directory. The output directory must exist before running the command.
+
+Alternatively, edit the paths and device ID in `LysMiner_prediction.sh`, then run:
+
+```bash
+bash LysMiner_prediction.sh
+```
+
+The supplied shell script uses device ID `6`. Its relative `--config_path config_1024.yaml` is resolved under `src/model_utils/`; use `--config_path "$PWD/config_1024.yaml"` as shown above to select the top-level configuration explicitly.
+
+For the example input, the prediction results are saved to `example/example_seq_predict_result.csv` with the following columns:
+
+| Column | Description |
+| :-- | :-- |
+| `id` | Protein ID from the input file |
+| `seq` | Original input sequence, including any residues excluded by truncation |
+| `pred_label` | Predicted class: `1` for candidate lysozymes and `0` for non-lysozymes |
+| `dense` | Model softmax score for class `1`, ranging from 0 to 1 |
+
+The CSV also contains a leading row-index column written by pandas. This column can be ignored. `pred_label` is determined by the class with the highest score; the output rows retain the input order.
+
+To retain only the predicted lysozyme-positive sequences for subsequent analysis, run the following command from the project directory:
+
+```bash
+python - <<'PY'
+import pandas as pd
+
+results = pd.read_csv("example/example_seq_predict_result.csv")
+positive = results.loc[results["pred_label"] == 1, ["id", "seq"]]
+positive.to_csv("example/lysozyme_positive.csv", index=False)
+PY
+```
+
+The resulting `lysozyme_positive.csv` can be used as input for AMP-like region prediction. LysMiner predicts lysozyme identity; its classification score does not quantify enzymatic activity in U/mg. Experimental validation is required to confirm activity. If prediction fails, check `log.log` and `sys.log` in the project directory.
 
 Then, run the prediction pipeline from the project directory:
 
