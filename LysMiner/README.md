@@ -2,12 +2,6 @@
 
 LysMiner identifies candidate lysozymes from protein sequences using a trained binary classification model. For each input sequence, it returns a predicted class and a score for the lysozyme-positive class.
 
-First, prepare a Python environment with MindSpore and the following packages:
-
-```bash
-python -m pip install numpy "pandas<2" scikit-learn pyyaml six tqdm
-```
-
 The study used MindSpore 1.8.0. Install the corresponding MindSpore package and hardware dependencies for your platform; see the [MindSpore 1.8 installation documentation](https://www.mindspore.cn/docs/zh-CN/r1.8/faq/installation.html). The supplied configuration uses `device_target: "Ascend"` by default. Ensure that this setting matches your installed MindSpore backend and available hardware. The current classification script uses a legacy pandas API, so pandas 1.x is required unless that call is updated.
 
 Then, organize the input data into the following format:
