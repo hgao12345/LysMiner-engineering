@@ -1,27 +1,157 @@
-# Classification Task
+# AMP-like Region Prediction
 
-First, you need to organize the training data into the following format:
+This module is used to identify AMP-like regions within full-length protein sequences using a sliding-window-based prediction strategy.
 
-> root_data_path <br>
-&emsp;&emsp;|---train.csv <br>
-&emsp;&emsp;|---val.csv (Optional) <br>
-&emsp;&emsp;|---test.csv (Optional) <br>
+The workflow first divides each protein sequence into 13-amino-acid overlapping windows with a step size of 1. Each window is then classified using a trained AMP prediction model. Windows predicted as AMP-positive (`label = 1`) are merged according to their positions in the original protein sequence to identify continuous AMP-like regions and calculate their proportion within each protein.
 
-Each csv file needs to contain the following columns：
+## Input Data
 
-| id | seq | label |
-| :--: 	| :--: | :--:	 |
-| protein id | protein sequence | int label |
+First, prepare the protein sequences in CSV format:
 
+> input.csv
 
-After that, you need to organize the data into Record format：
+The input CSV file should contain the following columns:
+
+| id | seq |
+| :--: | :--: |
+| protein id | protein sequence |
+
+For example:
+
+```csv
+id,seq
+protein_1,MKTIIALSYIFCLVFADYKDDDDK
+protein_2,MKWVTFISLLLLFSSAYSRGVFRR
 ```
-python generate_seq_for_classification.py --data_dir <csv_data> --vocab_file vocab_v2.txt --output_dir <mr_data> --max_seq_length 1024 --do_train True --do_eval True --do_test True
+
+## AMP-like Region Prediction
+
+Run the prediction pipeline using:
+
+```bash
+python AMP_region_prediction.py
 ```
 
-Then, use the following scirpt to train and evaluate model:
-```
-python mpbert_classification.py --config_path config_1024.yaml --do_train True --do_eval True --description classification --num_class 2 --epoch_num 200 --early_stopping_rounds 50 --frozen_bert False --device_id <id> --data_url <mr_data> --load_checkpoint_url MP-BERT_pretrained_model_1024.ckpt --output_url <saved_models> --task_name test --train_batch_size 32 1> log.log 2> sys.log
+The main parameters can be specified at the beginning of the script:
+
+```python
+WORK_DIR = Path("<working_directory>")
+INPUT_FILE = WORK_DIR / "<input_file>.csv"
+
+WINDOW_SIZE = 13
+STEP_SIZE = 1
+
+DEVICE_ID = <device_id>
+POSITIVE_LABEL = 1
 ```
 
+The trained AMP classification model should also be specified:
 
+```python
+CHECKPOINT = Path("<AMP_model_checkpoint>")
+```
+
+The MP-BERT-related files should be specified as:
+
+```python
+MODEL_SCRIPT = Path("<path_to>/mpbert_classification.py")
+CONFIG_PATH = Path("<path_to>/config_1024.yaml")
+VOCAB_FILE = Path("<path_to>/vocab_v2.txt")
+```
+
+## Workflow
+
+The pipeline consists of three steps.
+
+### 1. Generate Sliding Windows
+
+Each full-length protein sequence is divided into 13-aa overlapping windows using a step size of 1.
+
+For a protein sequence of length *L*, a total of:
+
+```text
+L - 13 + 1
+```
+
+windows are generated.
+
+The resulting file is organized as:
+
+| id | seq |
+| :--: | :--: |
+| protein_1_1 | 13-aa sequence |
+| protein_1_2 | 13-aa sequence |
+| ... | ... |
+
+The number at the end of each ID indicates the starting position of the window in the original protein sequence.
+
+### 2. Predict AMP-like Windows
+
+Each 13-aa window is classified using the trained AMP prediction model.
+
+In this pipeline:
+
+```text
+pred_label = 1
+```
+
+is defined as an AMP-positive window.
+
+Only a single trained model is used for prediction; no 10-fold ensemble is required.
+
+### 3. Identify AMP-like Regions
+
+AMP-positive windows are mapped back to their original positions in the full-length protein.
+
+Overlapping positive windows are merged into continuous AMP-like regions.
+
+The AMP-like region proportion is calculated as:
+
+```text
+AMP-like region proportion =
+number of residues covered by AMP-positive windows
+/
+full protein length
+```
+
+## Output
+
+The final output file is:
+
+```text
+protein_AMP_region_ratio.csv
+```
+
+The output contains the following information:
+
+| Column | Description |
+| :-- | :-- |
+| protein_name | Protein ID |
+| protein_length | Length of the full-length protein |
+| total_windows | Total number of 13-aa windows |
+| positive_windows | Number of AMP-positive windows |
+| AMP_length | Number of residues covered by AMP-like regions |
+| AMP_ratio | Fraction of the protein covered by AMP-like regions |
+| AMP_percent | Percentage of the protein covered by AMP-like regions |
+| AMP_regions | Positions of continuous AMP-like regions |
+
+For example:
+
+```text
+protein_name,protein_length,total_windows,positive_windows,AMP_length,AMP_ratio,AMP_percent,AMP_regions
+protein_1,150,138,20,35,0.2333,23.33,18-45;109-115
+```
+
+## Requirements
+
+The pipeline requires:
+
+```text
+Python
+pandas
+NumPy
+MP-BERT
+MindSpore
+```
+
+The corresponding MP-BERT configuration, vocabulary file, and trained AMP classification checkpoint are required for prediction.
