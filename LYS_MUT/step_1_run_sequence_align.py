@@ -67,7 +67,7 @@ def parse_args():
         "-U",
         "--uniref",
         type=str,
-        default="/data1/pub_data/UniProt/uniref90.fasta",
+        default="uniref90.fasta",
         help="UniRef90 FASTA file"
     )
 
