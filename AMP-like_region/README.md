@@ -124,18 +124,18 @@ The final output file is:
 protein_AMP_region_ratio.csv
 ```
 
-The output contains the following information:
+The final output, `protein_AMP_region_ratio.csv`, contains the following columns:
 
 | Column | Description |
 | :-- | :-- |
-| protein_name | Protein ID |
-| protein_length | Length of the full-length protein |
-| total_windows | Total number of 13-aa windows |
-| positive_windows | Number of AMP-positive windows |
-| AMP_length | Number of residues covered by AMP-like regions |
-| AMP_ratio | Fraction of the protein covered by AMP-like regions |
-| AMP_percent | Percentage of the protein covered by AMP-like regions |
-| AMP_regions | Positions of continuous AMP-like regions |
+| `protein_name` | Protein ID from the input file |
+| `protein_length` | Protein sequence length |
+| `total_windows` | Number of sliding windows evaluated |
+| `positive_windows` | Number of windows predicted as AMP-positive |
+| `AMP_length` | Number of unique residues covered by positive windows |
+| `AMP_ratio` | `AMP_length / protein_length`, ranging from 0 to 1 |
+| `AMP_percent` | `AMP_ratio × 100`, expressed as a percentage |
+| `AMP_regions` | Merged AMP-like regions using 1-based, inclusive coordinates, separated by semicolons |
 
 For example:
 
