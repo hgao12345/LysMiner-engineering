@@ -1,6 +1,6 @@
-# LysMiner
+# LysMiner-engineering
 
-This repository provides a workflow for lysozyme identification, AMP-like region prediction, and lysozyme activity engineering using three modules: **LysMiner**, **AMP-like**, and **LYS-MUT**.
+This repository provides a workflow for lysozyme identification, AMP-like region prediction, and lysozyme activity engineering using three modules: **LysMiner**, **AMP-like region prediction**, and **LYS-MUT**.
 
 ## Environment Setup
 
