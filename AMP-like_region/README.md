@@ -70,7 +70,7 @@ python AMP_region_prediction.py \
 | `--input` | Input CSV file containing protein IDs and sequences | `example/example_seq.csv` |
 | `--checkpoint` | Path to the pretrained `ABP_Model.ckpt` | Required |
 | `--output_dir` | Directory for output files | `example/` |
-| `--device` | GPU/device ID used for prediction | `0` |
+| `--device` | device ID used for prediction | `0` |
 | `--seq_name` | Prefix used for sliding-window output files | `LYS` |
 
 The sliding-window size and step size are fixed at 13 and 1, respectively, consistent with the model construction and AMP-like region prediction strategy used in this study.
