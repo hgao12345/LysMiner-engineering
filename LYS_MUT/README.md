@@ -57,12 +57,12 @@ With the default model configuration, the input sequence should contain 10–102
 
 ## 2. Retrieve Homologous Sequences and Prepare the Dataset
 
-Use `step_1_run_sequence_align.py` to search a local UniRef90 database with `jackhmmer` and construct the training, validation, and test datasets.
+Use `step_2_run_sequence_align.py` to search a local UniRef90 database with `jackhmmer` and construct the training, validation, and test datasets.
 
 For example:
 
 ```bash
-python step_1_run_sequence_align.py \
+python step_2_run_sequence_align.py \
     --fasta_file ./example/example_seq.fasta \
     --uniref /path/to/uniref90.fasta \
     --output ./example \
