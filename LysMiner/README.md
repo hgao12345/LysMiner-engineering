@@ -34,7 +34,7 @@ LysMiner/
     └── example_seq.csv
 ```
 
-`Download the trained LysMiner checkpoint (`LysMiner_Best_Model.ckpt`) from [Zenodo](ZENODO_URL_HERE) and place it in the project directory. Alternatively, set `--load_checkpoint_url` to the actual path of the downloaded checkpoint.
+`Download the trained LysMiner checkpoint (`LysMiner_Best_Model.ckpt`) from [Zenodo](https://zenodo.org/uploads/23055127) and place it in the project directory. Alternatively, set `--load_checkpoint_url` to the actual path of the downloaded checkpoint.
 
 Then, run the following command from the project directory:
 
