@@ -63,8 +63,6 @@ Alternatively, edit the paths and device ID in `LysMiner_prediction.sh`, then ru
 bash LysMiner_prediction.sh
 ```
 
-The supplied shell script uses device ID `6`. Its relative `--config_path config_1024.yaml` is resolved under `src/model_utils/`; use `--config_path "$PWD/config_1024.yaml"` as shown above to select the top-level configuration explicitly.
-
 For the example input, the prediction results are saved to `example/example_seq_predict_result.csv` with the following columns:
 
 | Column | Description |
