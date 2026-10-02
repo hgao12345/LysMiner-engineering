@@ -1,17 +1,43 @@
 import os
 from glob import glob
 import sys
+import argparse
 
-device_id=sys.argv[1]
 
-data_path=sys.argv[2
+parser = argparse.ArgumentParser()
 
-]
-print(data_path)
+parser.add_argument(
+    '--device_id',
+    type=str,
+    required=True,
+    help='Device ID'
+)
+
+parser.add_argument(
+    '--data_path',
+    type=str,
+    required=True,
+    help='Path to the training data'
+)
+
+parser.add_argument(
+    '--load_checkpoint_url',
+    type=str,
+    required=True,
+    help='Path to the pretrained checkpoint'
+)
+
+args = parser.parse_args()
+
+device_id = args.device_id
+data_path = args.data_path
+load_checkpoint_url = args.load_checkpoint_url
+
+
 cmd='python ' \
-    '/data2/liutuoyu/bert/codes/MP-BERT-v3/generate_dataset/generate_seq_for_mask.py ' \
+    'generate_seq_for_mask.py ' \
     '--data_dir '+data_path+' ' \
-    '--vocab_file /data1/gaohan/lab_bert/MP-BERT-LTY/generate_mindrecord/generate_for_finetune/vocab_v2.txt ' \
+    '--vocab_file vocab_v2.txt ' \
     '--output_dir '+data_path+' ' \
     '--max_seq_length 1024 --do_train True --do_eval True --do_test True ' \
     '1> '+data_path+'/data_process_log.log 2> '+data_path+'/data_process_sys.log'
@@ -19,8 +45,8 @@ print(cmd,flush=True)
 os.system(cmd)
 
 cmd='nohup python ' \
-    '/data2/liutuoyu/bert/codes/MP-BERT-v3/mpbert_mask.py ' \
-    '--config_path /data2/liutuoyu/bert/codes/MP-BERT-v3/config_1024.yaml ' \
+    'mpbert_mask.py ' \
+    '--config_path config_1024.yaml ' \
     '--do_train True ' \
     '--do_eval True ' \
     '--description sequence ' \
@@ -29,7 +55,7 @@ cmd='nohup python ' \
     '--frozen_bert False ' \
     '--device_id '+str(device_id)+' ' \
     '--data_url '+data_path+' ' \
-    '--load_checkpoint_url /data1/liutuoyu/checkpoint_bert-46210_100.ckpt ' \
+    '--load_checkpoint_url '+load_checkpoint_url+' ' \
     '--output_url '+data_path+' ' \
     '--task_name mask ' \
     '--train_batch_size 32 ' \
