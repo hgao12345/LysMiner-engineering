@@ -173,53 +173,51 @@ is saved in the training directory.
 
 ## 4. Generate Lysozyme Variants
 
-After training is complete, use `step_4_run_predict.py` to generate candidate variants from the wild-type lysozyme.
+After training is complete, use `step_4_run_predict.py` to generate candidate variants from the wild-type lysozyme using the trained target-specific model.
 
 For example:
 
 ```bash
 python step_4_run_predict.py \
-    --input ./example/example_seq.fasta \
-    --model_dir ./example/example_seq/train_data \
-    --mpbert_dir /path/to/MP-BERT-v3 \
-    --vocab_file /path/to/vocab_v2.txt \
-    --device 0
+    --data_name example_seq \
+    --data_path ./example/example_seq.fasta \
+    --device_id 0 \
+    --model_path ./example/example_seq/train_data/mask_Best_Model.ckpt \
+    --save_path ./example/example_seq/train_data
 ```
 
-Replace the example paths with the corresponding paths on your system.
+Replace the example paths and device ID with the corresponding settings on your system.
 
 The main arguments are:
 
 | Argument | Description | Default |
 | :-- | :-- | :-- |
-| `--input` | Input FASTA containing the wild-type lysozyme | Required |
-| `--model_dir` | Directory containing the trained `mask_Best_Model.ckpt` | Required |
-| `--mpbert_dir` | MP-BERT directory containing `mpbert_mask.py` and `config_1024.yaml` | Required |
-| `--vocab_file` | Path to `vocab_v2.txt` | Required |
-| `--device` | Ascend device ID used for prediction | `0` |
+| `--data_name` | Name of the input sequence or dataset | Required |
+| `--data_path` | Path to the input FASTA file containing the wild-type lysozyme | Required |
+| `--device_id` | Ascend device ID used for prediction | Required |
+| `--model_path` | Path to the trained target-specific `mask_Best_Model.ckpt` | Required |
+| `--save_path` | Directory for saving prediction outputs | Required |
 | `--predict_mask_num` | Number of sequence-generation attempts | `100000` |
 | `--mask_prob` | Proportion of residues masked during each generation attempt | `0.1` |
 
 With the default settings, LYS-MUT performs 100,000 sequence-generation attempts with a masking proportion of 0.1.
 
+The `--predict_mask_num` and `--mask_prob` parameters are optional. If they are not specified, the default values of `100000` and `0.1`, respectively, are used.
+
 The generation parameters can be changed directly from the command line. For example:
 
 ```bash
 python step_4_run_predict.py \
-    --input ./example/example_seq.fasta \
-    --model_dir ./example/example_seq/train_data \
-    --mpbert_dir /path/to/MP-BERT-v3 \
-    --vocab_file /path/to/vocab_v2.txt \
-    --device 0 \
+    --data_name example_seq \
+    --data_path ./example/example_seq.fasta \
+    --device_id 0 \
+    --model_path ./example/example_seq/train_data/mask_Best_Model.ckpt \
+    --save_path ./example/example_seq/train_data \
     --predict_mask_num 100000 \
     --mask_prob 0.15
 ```
 
-The generated sequences and associated model outputs are saved under:
-
-```text
-example/example_seq/train_data/prediction/
-```
+The generated sequences and associated model outputs are saved to the directory specified by `--save_path`.
 
 ## 5. Export Generated Variants
 
