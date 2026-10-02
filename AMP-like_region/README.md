@@ -183,9 +183,9 @@ The default window size is 13 amino acids, consistent with the sliding-window ge
 
 For each protein, all residues covered by AMP-positive windows (`pred_label = 1`) are combined. Overlapping residues are counted only once when calculating the AMP-like region coverage.
 
-The output filenames are generated automatically from the input prediction filename.
+The output filenames are generated automatically from the original sequence dataset name. The intermediate suffix `_sliding_window_sequences13AA_predict_result` is removed from the prediction filename before the final output filenames are generated.
 
-For example, if the input file is:
+For example, if the input prediction file is:
 
 ```text
 example_seq_sliding_window_sequences13AA_predict_result.csv
@@ -194,11 +194,11 @@ example_seq_sliding_window_sequences13AA_predict_result.csv
 the script generates:
 
 ```text
-example_seq_sliding_window_sequences13AA_predict_result_protein_coverage_ratios.csv
-example_seq_sliding_window_sequences13AA_predict_result_all_windows.csv
+example_seq_protein_coverage_ratios.csv
+example_seq_all_windows.csv
 ```
 
-The main protein-level output file contains:
+The main protein-level output file, `example_seq_protein_coverage_ratios.csv`, contains:
 
 | Column | Description |
 | :-- | :-- |
@@ -214,7 +214,7 @@ The AMP-like region coverage ratio is calculated as:
 coverage_ratio = unique_positive_positions / protein_length
 ```
 
-The second output file contains the window-level prediction results together with the extracted protein name, window starting position, and AMP-positive status.
+The second output file, `example_seq_all_windows.csv`, contains the window-level prediction results together with the extracted protein name, window starting position, and AMP-positive status.
 
 ## Example Workflow
 
