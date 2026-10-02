@@ -69,9 +69,9 @@ mask_prob = args.mask_prob
 
 os.makedirs(save_path,exist_ok=True)
 cmd='python ' \
-    '/data2/liutuoyu/bert/codes/MP-BERT-v3/mpbert_mask.py ' \
-    '--config_path /data2/liutuoyu/bert/codes/MP-BERT-v3/config_1024.yaml ' \
-    "--vocab_file  /data2/liutuoyu/bert/codes/generate_mindrecord/generate_for_pretrain_only_Mask/vocab_v2.txt " \
+    'mpbert_mask.py ' \
+    '--config_path config_1024.yaml ' \
+    "--vocab_file vocab_v2.txt " \
     '--do_predict True ' \
     '--description sequence ' \
     '--device_id '+str(device_id)+' ' \
