@@ -195,7 +195,7 @@ The main arguments are:
 | `--data_name` | Name of the input sequence or dataset | Required |
 | `--data_path` | Path to the input FASTA file containing the wild-type lysozyme | Required |
 | `--device_id` | Ascend device ID used for prediction | Required |
-| `--model_path` | Path to the trained target-specific `mask_Best_Model.ckpt` (from ## 3. Train the Target-Specific Model) | Required |
+| `--model_path` | Path to the target-specific `mask_Best_Model.ckpt` generated in Step 3 | Required |
 | `--save_path` | Directory for saving prediction outputs | Required |
 | `--predict_mask_num` | Number of sequence-generation attempts | `100000` |
 | `--mask_prob` | Proportion of residues masked during each generation attempt | `0.1` |
