@@ -180,7 +180,7 @@ For example:
 ```bash
 python step_4_run_predict.py \
     --data_name example_seq \
-    --data_path ./WT_seq.fasta \
+    --data_path ./example/example_seq.fasta \
     --device_id your_device_id \
     --model_path ./your/mask_Best_Model.ckpt \
     --save_path your_save_path
