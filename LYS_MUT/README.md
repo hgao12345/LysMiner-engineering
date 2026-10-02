@@ -180,10 +180,10 @@ For example:
 ```bash
 python step_4_run_predict.py \
     --data_name example_seq \
-    --data_path ./example/example_seq.fasta \
-    --device_id 0 \
-    --model_path ./example/example_seq/train_data/mask_Best_Model.ckpt \
-    --save_path ./example/example_seq/train_data
+    --data_path ./WT_seq.fasta \
+    --device_id your_device_id \
+    --model_path ./your/mask_Best_Model.ckpt \
+    --save_path your_save_path
 ```
 
 Replace the example paths and device ID with the corresponding settings on your system.
@@ -195,7 +195,7 @@ The main arguments are:
 | `--data_name` | Name of the input sequence or dataset | Required |
 | `--data_path` | Path to the input FASTA file containing the wild-type lysozyme | Required |
 | `--device_id` | Ascend device ID used for prediction | Required |
-| `--model_path` | Path to the trained target-specific `mask_Best_Model.ckpt` | Required |
+| `--model_path` | Path to the trained target-specific `mask_Best_Model.ckpt` (from ## 3. Train the Target-Specific Model) | Required |
 | `--save_path` | Directory for saving prediction outputs | Required |
 | `--predict_mask_num` | Number of sequence-generation attempts | `100000` |
 | `--mask_prob` | Proportion of residues masked during each generation attempt | `0.1` |
