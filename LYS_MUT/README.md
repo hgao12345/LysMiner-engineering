@@ -117,24 +117,20 @@ For example:
 
 ```bash
 python step_3_run_train.py \
-    --data_path ./example/example_seq/train_data \
-    --mpbert_dir /path/to/MP-BERT-v3 \
-    --vocab_file /path/to/vocab_v2.txt \
-    --checkpoint /path/to/pretrained_model.ckpt \
-    --device 0
+    --device_id your_device_id \
+    --data_path your_data_path \
+    --load_checkpoint_url path_to_checkpoint
 ```
 
-Replace the example paths with the corresponding paths on your system.
+Replace the example paths and device ID with the corresponding settings on your system.
 
 The main arguments are:
 
 | Argument | Description | Default |
 | :-- | :-- | :-- |
+| `--device_id` | Ascend device ID used for training | Required |
 | `--data_path` | Directory containing `train.fasta`, `val.fasta`, and `test.fasta` | Required |
-| `--mpbert_dir` | MP-BERT directory containing `mpbert_mask.py`, `config_1024.yaml`, and `generate_dataset/generate_seq_for_mask.py` | Required |
-| `--vocab_file` | Path to `vocab_v2.txt` | Required |
-| `--checkpoint` | Path to the pretrained MP-BERT initialization checkpoint | Required |
-| `--device` | Ascend device ID used for training | `0` |
+| `--load_checkpoint_url` | Path to the pretrained MP-BERT initialization checkpoint | Required |
 
 The script first converts `train.fasta`, `val.fasta`, and `test.fasta` into the dataset format required for MP-BERT masked-model training. Dataset-processing logs are written to:
 
