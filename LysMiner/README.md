@@ -41,7 +41,7 @@ Then, run the following command from the project directory:
 ```bash
 cd /absolute/path/to/LysMiner
 python mpbert_classification.py \
-    --config_path "$PWD/config_1024.yaml" \
+    --config_path ./config_1024.yaml \
     --load_checkpoint_url ./LysMiner_Best_Model.ckpt \
     --do_predict True \
     --description classification \
